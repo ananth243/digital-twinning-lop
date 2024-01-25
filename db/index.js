@@ -3,10 +3,13 @@ import pg from "pg";
 
 config();
 
-const client = new pg.Client({
-  database: process.env.DBNAME,
-  user: process.env.DBUSER,
-  password: process.env.DBPWD,
-});
+const getDBPool = (concurrencyCount = 25) => {
+  return new pg.Pool({
+      concurrencyCount: concurrencyCount,
+      user: process.env.DB_USER,
+      database: process.env.DB_NAME,
+      password: process.env.DB_PWD,
+  })
+}
 
-export default client;
+export default getDBPool;
