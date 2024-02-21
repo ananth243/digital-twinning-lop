@@ -1,5 +1,6 @@
 import {Router} from "express";
 import { getDataFromDB, insertDataIntoDB } from "../helpers/sensorHelper.js";
+import getDBPool from "../db/index.js";
 
 const router = new Router();
 
@@ -14,28 +15,47 @@ router.get('/fetch-data', async (req, res) => {
 
 router.post('/insert-data', async (req, res) => {
     const {
-        acc_x, 
-        acc_y, 
-        acc_z, 
-        angular_velo_x, 
-        angular_velo_y, 
-        angular_velo_z,
-        mgm_x,
-        mgm_y,
-        mgm_z
+        date,
+        location,
+        max_temp,
+        min_temp,
+        avg_temp,
+        max_wind,
+        total_precip,
+        total_snow,
+        avg_visiblilty,
+        avg_humidity,
+        will_it_rain,
+        chance_of_rain,
+        will_it_snow,
+        chance_of_snow,
+        condition,
+        uv_index
     } = req.body
     try {
+        const pool = getDBPool(1);
+        const client = await pool.connect()
         await insertDataIntoDB(
-            acc_x, 
-            acc_y, 
-            acc_z, 
-            angular_velo_x, 
-            angular_velo_y, 
-            angular_velo_z,
-            mgm_x,
-            mgm_y,
-            mgm_z
+            client,
+            date,
+            location,
+            max_temp,
+            min_temp,
+            avg_temp,
+            max_wind,
+            total_precip,
+            total_snow,
+            avg_visiblilty,
+            avg_humidity,
+            will_it_rain,
+            chance_of_rain,
+            will_it_snow,
+            chance_of_snow,
+            condition,
+            uv_index
         );
+        client.release()
+        pool.end()
         res.status(200).send({status: 'ok'})
     } catch (e) {
         res.status(500).send({status: 'failure', error: e})
