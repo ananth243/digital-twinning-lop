@@ -1,14 +1,17 @@
 const fs = require('fs');
 const Papa = require('papaparse');
 const { Client } = require('pg');
+const {config} = require('dotenv');
+
+config();
 
 // PostgreSQL database connection config
 const Config = {
-    user: 'postgres',
+    user: process.env.DB_USER,
     host: 'localhost',
-    database: 'weather_data',
-    password: 'Pranjal@6',
-    port: 5433, // Default PostgreSQL port
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: 5432, // Default PostgreSQL port
 };
 
 const csvFilePath = 'weather_data.csv';
@@ -26,16 +29,22 @@ fs.readFile(csvFilePath, 'utf8', async (err, data) => {
     // Extract headers from the CSV file
     const headers = parsedData.meta.fields;
 
+    console.log(Config)
+    const client = new Client(Config);
+
+    await client.connect();
     // Create the table dynamically based on the headers
-    await createTable(headers);
+    await createTable(headers, client);
+
+    parsedData.data.map(async (row) => {
+      // Pass the row object directly to the insertDataToPostgres function
+      await insertDataToPostgres(row, client);
+    })
 });
 
 // Function to create the table dynamically based on headers
-async function createTable(headers) {
-    const client = new Client(Config);
-
+async function createTable(headers, client) {
     try {
-        await client.connect();
 
         // Construct the CREATE TABLE query dynamically
         const query = `
@@ -50,34 +59,13 @@ async function createTable(headers) {
         console.log('Table "weather" created successfully with dynamic columns');
     } catch (error) {
         console.error('Error creating table:', error);
-    } finally {
-        await client.end();
     }
 }
 
 
-fs.readFile(csvFilePath, 'utf8', async (err, data) => {
-  if (err) {
-    console.error('Error reading CSV file');
-    return;
-  }
-
-  // Parse the CSV data
-  const parsedData = Papa.parse(data, { header: true });
-
-  // Now you can work with the parsedData
-  parsedData.data.map(async (row) => {
-    // Pass the row object directly to the insertDataToPostgres function
-    await insertDataToPostgres(row);
-  });
-});
-
-async function insertDataToPostgres(row) {
-  const client = new Client(Config);
+async function insertDataToPostgres(row, client) {
 
   try {
-    await client.connect();
-
     // Replace with your PostgreSQL table name
     const tableName = 'weather';
 
@@ -95,8 +83,6 @@ async function insertDataToPostgres(row) {
     console.log(`Data inserted successfully into PostgreSQL for row ${Object.values(row).join(',')}`);
   } catch (error) {
     console.error(`Error inserting data into PostgreSQL for row ${Object.values(row).join(',')}`, error);
-  } finally {
-    await client.end();
   }
 }
 
