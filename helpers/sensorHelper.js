@@ -81,6 +81,11 @@ export const insertDataIntoDB = async (
       condition,
       uv_index
     ];
+
+    if (date == "") {
+      return
+    }
+
     const paramsQuery = createParameters(columns.length);
     const insertQuery = `INSERT INTO public.sensor_data (${[...columns].join(
       ","

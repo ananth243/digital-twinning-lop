@@ -10,7 +10,7 @@ const Config = {
     user: process.env.DB_USER,
     host: 'localhost',
     database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
+    password: process.env.DB_PWD,
     port: 5432, // Default PostgreSQL port
 };
 
@@ -71,6 +71,11 @@ async function insertDataToPostgres(row, client) {
 
     // Extract column names dynamically from the CSV header
     const columns = Object.keys(row).map(column => `"${column}"`);
+
+    if(Object.values(row)[0] == "") {
+      console.log("Empty row found, skipping...")
+      return
+    }
 
     // Build the dynamic INSERT INTO query
     const query = `
