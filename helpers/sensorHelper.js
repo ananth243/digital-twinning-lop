@@ -12,11 +12,11 @@ export const getDataFromDB = async () => {
   try {
     client = await pool.connect();
     const fetchQuery =
-      "SELECT * FROM public.sensor_data ORDER BY timestamp ASC";
+      "SELECT * FROM public.weather ORDER BY date ASC";
     const { rows } = await client.query(fetchQuery);
     return rows;
   } catch (e) {
-    console.log(`Error in inserting to DB: `, e);
+    console.log(`Error fetching from DB: `, e);
   } finally {
     client && client.release();
     pool && pool.end();
